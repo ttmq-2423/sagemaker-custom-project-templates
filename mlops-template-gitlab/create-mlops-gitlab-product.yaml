@@ -369,6 +369,16 @@ Resources:
                   - 's3:GetObject'
                 Resource: !Join ['',[!GetAtt BootstrapS3Bucket.Arn,'/*']]
               - Effect: Allow
+                Action:
+                  - 's3:ListBucket'
+                Resource:
+                  - 'arn:aws:s3:::mqht' # Use specific bucket name
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                Resource:
+                  - 'arn:aws:s3:::mqht/*' # Use specific bucket and object prefix
+              - Effect: Allow
                 Action: 
                   - 'secretsmanager:GetSecretValue'
                 Resource: !Ref GitLabTokenSecret
@@ -481,7 +491,6 @@ Resources:
                   - !Ref GitLabIAMUserSecretKeySecret
                   - !Ref GitLabIAMUserAccessKeySecret
       RoleName: !Join ['-', ['SM-Gitlab-Example-Use-Role', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref 'AWS::StackId']]]]]]
-
   ServiceCatalogProductRoleLaunchContstraint:
     Type: AWS::ServiceCatalog::LaunchRoleConstraint
     DependsOn: 

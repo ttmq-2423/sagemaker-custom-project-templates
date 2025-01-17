@@ -93,6 +93,7 @@ def get_pipeline(
     sagemaker_project_arn=None,
     role=None,
     default_bucket=None,
+    model_package_group_name="MedicalMAEPackageGroup",
     pipeline_name="MedicalMAE_Pipeline",
     base_job_prefix="MedicalMAE",
 ):
