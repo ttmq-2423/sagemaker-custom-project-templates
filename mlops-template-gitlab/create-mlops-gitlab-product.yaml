@@ -491,6 +491,8 @@ Resources:
                   - !Ref GitLabIAMUserSecretKeySecret
                   - !Ref GitLabIAMUserAccessKeySecret
       RoleName: !Join ['-', ['SM-Gitlab-Example-Use-Role', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref 'AWS::StackId']]]]]]
+
+
   ServiceCatalogProductRoleLaunchContstraint:
     Type: AWS::ServiceCatalog::LaunchRoleConstraint
     DependsOn: 
