@@ -1,0 +1,9 @@
+[submodule "mlops-multi-account-tf"]
+	path = mlops-multi-account-tf
+	url = https://github.com/aws-samples/mlops-multi-account-terraform.git
+[submodule "mlops-multi-account-cdk"]
+	path = mlops-multi-account-cdk
+	url = https://github.com/aws-samples/aws-enterprise-mlops-framework.git
+[submodule "mlops-terraform-cloud/aws-service-catalog-engine-for-tfc"]
+	path = mlops-terraform-cloud/aws-service-catalog-engine-for-tfc
+	url = https://github.com/hashicorp/aws-service-catalog-engine-for-tfc.git
