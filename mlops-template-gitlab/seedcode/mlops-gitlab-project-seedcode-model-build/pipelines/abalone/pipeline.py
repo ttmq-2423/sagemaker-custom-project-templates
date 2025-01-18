@@ -134,6 +134,11 @@ def get_pipeline(
         name="EvaluateImageUri",
         default_value="600627364468.dkr.ecr.us-east-1.amazonaws.com/evaluate:latest"
     )
+    model_approval_status = ParameterString(
+        name="ModelApprovalStatus", default_value="PendingManualApproval"
+    )
+    mse_threshold = ParameterInteger(name='MseThreshold', default_value=50)
+
 
     # Processing step for data preprocessing
     script_processor = ScriptProcessor(
@@ -209,11 +214,47 @@ def get_pipeline(
         estimator=evaluator,
         inputs={"training": eval_input_data, "code": eval_source_data},
     )
+  # register model step that will be conditionally executed
+    model_metrics = ModelMetrics(
+        model_statistics=MetricsSource(
+            s3_uri="{}/evaluation.json".format(
+               step_eval.properties.ModelArtifacts.S3ModelArtifacts
+           ),
+            content_type="application/json"
+         )
+     )
+    step_register = RegisterModel(
+        name="RegisterMedicalMAEModel",
+        estimator=estimator,
+        model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
+        content_types=["text/csv"],
+        response_types=["text/csv"],
+        inference_instances=["ml.t2.medium", "ml.m5.large"],
+        transform_instances=["ml.m5.large"],
+        model_package_group_name=model_package_group_name,
+        approval_status=model_approval_status,
+        model_metrics=model_metrics,
+    )
 
+    # condition step for evaluating model quality and branching execution
+    cond_lte = ConditionLessThanOrEqualTo(
+        left=JsonGet(
+            step=step_eval,
+            property_file=model_metrics.model_statistics,
+           json_path="regression_metrics.auc.value" # Use AUC from evaluation.json
+        ),
+        right=mse_threshold,  # if auc >=0.7 then register
+    )
+    step_cond = ConditionStep(
+        name="CheckMSEMedicalMAEEvaluation",
+        conditions=[cond_lte],
+        if_steps=[step_register],
+        else_steps=[],
+    )
     # Define dependency
     step_train.add_depends_on([step_process])
     step_eval.add_depends_on([step_train])
-
+    step_cond.add_depends_on([step_eval])
 
     # Pipeline instance
     pipeline = Pipeline(
@@ -224,9 +265,11 @@ def get_pipeline(
            input_data_url,
            train_image_uri,
            processing_image_uri,
-           evaluate_image_uri
+           evaluate_image_uri,
+           model_approval_status,
+            mse_threshold,
         ],
-        steps=[step_process, step_train, step_eval],
+        steps=[step_process, step_train, step_eval,step_cond],
         sagemaker_session=sagemaker_session,
     )
     return pipeline
