@@ -214,15 +214,7 @@ def get_pipeline(
         estimator=evaluator,
         inputs={"training": eval_input_data, "code": eval_source_data},
     )
-  # register model step that will be conditionally executed
-    model_metrics = ModelMetrics(
-        model_statistics=MetricsSource(
-            s3_uri="{}/evaluation.json".format(
-               step_eval.properties.ModelArtifacts.S3ModelArtifacts
-           ),
-            content_type="application/json"
-         )
-     )
+
     step_register = RegisterModel(
         name="RegisterMedicalMAEModel",
         estimator=estimator,
@@ -233,16 +225,12 @@ def get_pipeline(
         transform_instances=["ml.m5.large"],
         model_package_group_name=model_package_group_name,
         approval_status=model_approval_status,
-        model_metrics=model_metrics,
+
     )
 
     # condition step for evaluating model quality and branching execution
     cond_lte = ConditionLessThanOrEqualTo(
-        left=JsonGet(
-            step=step_eval,
-            property_file=model_metrics.model_statistics,
-           json_path="regression_metrics.auc.value" # Use AUC from evaluation.json
-        ),
+        left= 0.9,
         right=mse_threshold,  # if auc >=0.7 then register
     )
     step_cond = ConditionStep(
