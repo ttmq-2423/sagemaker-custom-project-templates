@@ -178,7 +178,7 @@ def get_pipeline(
         image_uri=train_image_uri,
         script_mode=True,
         region=region,
-        output_path=f"s3://{default_bucket}/output",
+        output_path=f"s3://{default_bucket}/output/train",
         model_output_path=f"s3://{default_bucket}/model",
         sagemaker_session=sagemaker_session,
         base_job_name=f"{base_job_prefix}/train-medical-mae",
@@ -192,7 +192,7 @@ def get_pipeline(
     )
 
 
-    # Evaluation step for model evaluation
+# Evaluation step for model evaluation
     evaluator = PyTorch(
         entry_point="pipelines/abalone/evaluate_script.py",
         source_dir="./",
@@ -202,7 +202,7 @@ def get_pipeline(
         image_uri=evaluate_image_uri,
         script_mode=True,
         region=region,
-        output_path=f"s3://{default_bucket}/output",
+        output_path=f"s3://{default_bucket}/output/evaluate",
         model_output_path=f"s3://{default_bucket}/model",
         sagemaker_session=sagemaker_session,
         base_job_name=f"{base_job_prefix}/evaluate-medical-mae",
@@ -215,6 +215,26 @@ def get_pipeline(
         inputs={"training": eval_input_data, "code": eval_source_data},
     )
 
+    # Get evaluation report from Evaluate Step
+    evaluation_report = PropertyFile(
+        name="MedicalMAEEvaluationReport",
+        output_name="evaluation",
+        path="evaluation.json",
+    )
+
+    # register model step that will be conditionally executed
+  
+
+    model_metrics = ModelMetrics(
+     model_statistics=MetricsSource(
+         s3_uri="s3://evaluate-output/output/evaluation.json",
+         content_type="application/json"
+        )
+    )
+
+    
+    
+
     step_register = RegisterModel(
         name="RegisterMedicalMAEModel",
         estimator=estimator,
@@ -225,24 +245,16 @@ def get_pipeline(
         transform_instances=["ml.m5.large"],
         model_package_group_name=model_package_group_name,
         approval_status=model_approval_status,
+        model_metrics=model_metrics, # Pass the model metrics object
+    )
+      # condition step for evaluating model quality and branching execution
+   
 
-    )
 
-    # condition step for evaluating model quality and branching execution
-    cond_lte = ConditionLessThanOrEqualTo(
-        left= 0.9,
-        right=mse_threshold,  # if auc >=0.7 then register
-    )
-    step_cond = ConditionStep(
-        name="CheckMSEMedicalMAEEvaluation",
-        conditions=[cond_lte],
-        if_steps=[step_register],
-        else_steps=[],
-    )
     # Define dependency
     step_train.add_depends_on([step_process])
     step_eval.add_depends_on([step_train])
-    step_cond.add_depends_on([step_eval])
+    #step_register.add_depends_on([step_eval])
 
     # Pipeline instance
     pipeline = Pipeline(
@@ -257,7 +269,7 @@ def get_pipeline(
            model_approval_status,
             mse_threshold,
         ],
-        steps=[step_process, step_train, step_eval,step_cond],
+        steps=[step_process, step_train, step_eval,step_register],
         sagemaker_session=sagemaker_session,
     )
     return pipeline
