@@ -1,5 +1,0 @@
-aws-cdk-lib
-boto3
-constructs
-yamldataclassconfig
-python-dotenv
