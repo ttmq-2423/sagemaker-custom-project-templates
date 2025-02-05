@@ -124,15 +124,15 @@ def get_pipeline(
     )
     train_image_uri = ParameterString(
         name="TrainImageUri",
-        default_value="600627364468.dkr.ecr.us-east-1.amazonaws.com/mq/train_image:latest"
+        default_value="60062736****.dkr.ecr.us-east-1.amazonaws.com/mq/train_image:latest" // change to your image
     )
     processing_image_uri = ParameterString(
         name="ProcessingImageUri",
-        default_value="600627364468.dkr.ecr.us-east-1.amazonaws.com/mq/processing:latest"
+        default_value="60062736****.dkr.ecr.us-east-1.amazonaws.com/mq/processing:latest" // change to your image
     )
     evaluate_image_uri = ParameterString(
         name="EvaluateImageUri",
-        default_value="600627364468.dkr.ecr.us-east-1.amazonaws.com/evaluate:latest"
+        default_value="60062736****.dkr.ecr.us-east-1.amazonaws.com/evaluate:latest" // change to your image
     )
     model_approval_status = ParameterString(
         name="ModelApprovalStatus", default_value="PendingManualApproval"
