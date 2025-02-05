@@ -9,6 +9,11 @@ This template is inspired by Amazon Web Services’ official repository:
 
 Modifications have been made to **build and deploy pipelines** to align with our specific **medical imaging** use case.
 
+### 📷 Template Architecture  
+The following diagram illustrates the architecture of this MLOps template:
+
+![MLOps Template Architecture](images/image.png) 
+
 ## 🛠️ Setup Guide  
 For detailed instructions on:  
 - **Adding the template to SageMaker**  
