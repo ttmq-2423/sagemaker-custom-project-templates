@@ -165,12 +165,12 @@ def get_pipeline(
         processor=script_processor,
         inputs=[input_data],
         outputs=[output_data],
-        code="pipelines/abalone/preprocess_script.py",
+        code="pipelines/medical_mae_mixi/preprocess_script.py",
     )
 
     # Training step for model training
     estimator = PyTorch(
-        entry_point="pipelines/abalone/train_script.py",
+        entry_point="pipelines/medical_mae_mixi/train_script.py",
         source_dir="./",
         role=role,
         instance_count=1,
@@ -194,7 +194,7 @@ def get_pipeline(
 
 # Evaluation step for model evaluation
     evaluator = PyTorch(
-        entry_point="pipelines/abalone/evaluate_script.py",
+        entry_point="pipelines/medical_mae_mixi/evaluate_script.py",
         source_dir="./",
         role=role,
         instance_count=1,
